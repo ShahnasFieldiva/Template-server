@@ -1,15 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 import { NotFoundError, BadRequestError, AuthorizeError, APIError } from './errors';
 import { logger } from '../logger';
+import { RabbitMQPublisher } from '@infrastructure/rabbitmq/publisher/rabbitmq.publisher';
 
 
 type LogLevel = 'error' | 'warn' | 'info' | 'debug';
 
-export const ErrorHandler = (error:Error,req:Request,res:Response,next:NextFunction) =>{
+export const ErrorHandler = async (error:Error,req:Request,res:Response,next:NextFunction) =>{
     const knownErrors = [NotFoundError, BadRequestError, AuthorizeError, APIError];
     let status = 500;
     let logLevel: LogLevel = 'error';
     let message = 'Internal Server Error';
+
+    const rabbitMQPublisher = new RabbitMQPublisher ();
+
 
     knownErrors.forEach((ErrorClass) => {
         if (error instanceof ErrorClass) {
@@ -33,6 +37,20 @@ export const ErrorHandler = (error:Error,req:Request,res:Response,next:NextFunct
         });    
     }
     
+    const errorPayload = {
+        timestamp: new Date().toISOString(),
+        error: error?.message,
+        stack: error?.stack,
+        route: req?.path,
+        method: req?.method,
+        //Replace dummy URL in errorPath with the actual URL.
+        errorPath: `${req?.protocol}://${req.get('host')}/template${req?.originalUrl}`, 
+        ip: req?.ip,
+        status,
+    }
+    await rabbitMQPublisher.publishToQueues('notification-service', {service:"Template-service",action:'InternalServerErrorMail',payload:errorPayload});
+
+
     res.status(status).json({
         status,
         message
