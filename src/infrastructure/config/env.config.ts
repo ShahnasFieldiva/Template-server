@@ -27,7 +27,10 @@ const requiredEnvVars = [
     "RABBITMQ_PORT",
     "RABBITMQ_USER",
     "RABBITMQ_PASSWORD",
-    "RABBITMQ_VHOST"
+    "RABBITMQ_VHOST",
+    "CORS_WHITELIST",
+
+
   ];
 
     for (const envVar of requiredEnvVars) {
@@ -35,6 +38,28 @@ const requiredEnvVars = [
       throw new Error(`Missing required environment variable: ${envVar}`);
     }
   }
+
+  // Parse CORS whitelist (JSON array or comma-separated)
+  function parseJsonArray(raw: string | undefined): string[] {
+  if (!raw) return [];
+  const text = raw.trim();
+  if (text.startsWith("[") && text.endsWith("]")) {
+    try {
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed)) return parsed.map(String);
+      throw new Error("JSON must be an array");
+    } catch {
+      // fall back to CSV parsing below
+    }
+  }
+  return text
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  }
+
+  const parsedCorsWhitelist = parseJsonArray(process.env.CORS_WHITELIST);
+
 
     export default {
     PORT: Number(process.env.PORT),
@@ -57,4 +82,7 @@ const requiredEnvVars = [
     RABBITMQ_PORT: process.env.RABBITMQ_PORT,
     RABBITMQ_USER: process.env.RABBITMQ_USER,
     RABBITMQ_PASSWORD: process.env.RABBITMQ_PASSWORD,
+
+    CORS_WHITELIST: parsedCorsWhitelist, 
+
   };

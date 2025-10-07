@@ -10,7 +10,7 @@ import cookieParser from "cookie-parser";
 import { logger } from "./logger";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./swagger/swagger.config";
-import { ErrorHandler, HandleUnCaughtException } from "./errors";
+import { BadRequestError, ErrorHandler, HandleUnCaughtException } from "./errors";
 import { connectToDatabase } from "./database/mongoose.config";
 import router from "@presentation/routes";
 import { RabbitMQConnection } from "./rabbitmq/connection/rabbitmq.connection";
@@ -33,7 +33,23 @@ export class ServerInfrastructure {
          private initializeMiddlewares(): void {
             this.app.set('trust proxy', 1);
             this.configureMorgan();
-            this.app.use(cors({ origin: "*", credentials: true }));
+            const whitelist = envConfig.CORS_WHITELIST || [];
+            const corsOptions = {
+            origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+                if (!origin || whitelist.includes(origin)) {
+                    callback(null, true);
+                } else {
+                    callback(new BadRequestError("Not allowed by CORS"));
+                }
+            },
+            credentials: true,
+            methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+            allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
+            exposedHeaders: ["Set-Cookie"],
+            maxAge: 86400 // 24 hours
+        };
+            this.app.use(cors(corsOptions));
+            this.app.options(/.*/, cors(corsOptions));
             this.app.use(helmet());
             this.app.use(express.urlencoded({ extended: true }));
             this.app.use(express.json());
