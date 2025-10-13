@@ -35,9 +35,8 @@ export const ErrorHandler = async (error:Error,req:Request,res:Response,next:Nex
             ip: req.ip,
             status,
         });    
-    }
-    
-    const errorPayload = {
+
+        const errorPayload = {
         timestamp: new Date().toISOString(),
         error: error?.message,
         stack: error?.stack,
@@ -49,6 +48,10 @@ export const ErrorHandler = async (error:Error,req:Request,res:Response,next:Nex
         status,
     }
     await rabbitMQPublisher.publishToQueues('notification-service', {service:"Template-service",action:'InternalServerErrorMail',payload:errorPayload});
+    
+    }
+    
+
 
 
     res.status(status).json({
