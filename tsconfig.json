@@ -13,7 +13,8 @@
       "@infrastructure/*": ["infrastructure/*"],
       "@presentation/*": ["presentation/*"],
       "@domain/*": ["domain/*"],
-      "@application/*": ["application/*"]
+      "@application/*": ["application/*"],
+      "@modules/*":["modules/*"]
     }
   },
   "include": ["src/**/*.ts"],

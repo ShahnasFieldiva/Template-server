@@ -12,7 +12,7 @@ import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./swagger/swagger.config";
 import { BadRequestError, ErrorHandler, HandleUnCaughtException } from "./errors";
 import { connectToDatabase } from "./database/mongoose.config";
-import router from "@presentation/routes";
+import router from "@modules/index";
 import { RabbitMQConnection } from "./rabbitmq/connection/rabbitmq.connection";
 import { redisClientInstance } from "./redis/redis.config";
 

@@ -1,5 +1,5 @@
-import { AuthController } from "@presentation/controllers/auth.controller";
 import { Router } from "express";
+import { AuthController } from "@modules/auth/controllers/auth.controller";
 
 export class AuthRoutes {
      router: Router;

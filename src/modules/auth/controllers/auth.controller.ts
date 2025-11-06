@@ -1,6 +1,6 @@
-import { AuthService } from "@application/services/auth.service";
 import envConfig from "@infrastructure/config/env.config";
 import { NextFunction, Request, Response } from "express";
+import { AuthService } from "@modules/auth/services/auth.service";
 
 export class AuthController{ 
     private authService: AuthService;
